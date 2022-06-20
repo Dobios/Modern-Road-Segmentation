@@ -1,0 +1,8 @@
+numpy
+wandb
+torch
+torchvision
+albumentations
+kaggle
+yacs
+pytorch_lightning
