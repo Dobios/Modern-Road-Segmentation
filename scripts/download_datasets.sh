@@ -8,7 +8,7 @@ if [ ! -d $DATA_DIR ]; then
 fi
 
 # Download Massachussets Road Dataset
-MASSACHUSSETS_PATH="$DATA_DIR/massachusetts"
+MASSACHUSSETS_PATH="$DATA_DIR/massachusetts/raw"
 if [ ! -d $MASSACHUSSETS_PATH ]; then
   mkdir $MASSACHUSSETS_PATH
 fi
@@ -18,7 +18,7 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # Download Massachussets Road Dataset
-DEEPGLOBE_PATH="$DATA_DIR/deepglobe"
+DEEPGLOBE_PATH="$DATA_DIR/deepglobe/raw"
 if [ ! -d $DEEPGLOBE_PATH ]; then
   mkdir $DEEPGLOBE_PATH
 fi
