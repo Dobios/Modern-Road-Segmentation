@@ -6,6 +6,7 @@ DEEPGLOBE_PATH = 'data/deepglobe'
 # Set default config parameters
 _C = CN()
 
+# Dataset
 _C.DATASET = CN()
 _C.DATASET.BATCHSIZE = 64
 _C.DATASET.WORKERS = 8
@@ -25,7 +26,25 @@ _C.DATASET.AUG.ROTATE_LIMIT = (-180,180)
 _C.DATASET.AUG.ROTATE_PROB = 0.5
 _C.DATASET.MIN_MASK_PERCENTAGE = 0.01
 
-_C.TRAIN = CN()
+# Model
+_C.MODEL = CN()
+_C.MODEL.ARCH = 'UNet'
+
+# Loss
+_C.LOSS = CN()
+_C.LOSS.NAME = "DICE"
+_C.LOSS.DICE = CN()
+_C.LOSS.DICE.SMOOTH = 1.0
+
+# Optimizer
+_C.OPTIMIZER = CN()
+_C.OPTIMIZER.LR = 0.00001
+_C.OPTIMIZER.WD = 0.0
+
+# Training
+_C.TRAINING = CN()
+_C.TRAINING.LOG_FREQ_IMAGES = 5000
+_C.TRAINING.LOG_IMAGES = True
 
 def get_cfg_defaults():
   """Get a yacs CfgNode object with default values for my_project."""

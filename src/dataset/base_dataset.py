@@ -41,7 +41,6 @@ class BaseDataset(IterableDataset, ABC):
     
     def create_items(self, patches, mask_patches):
         for patch, mask in zip(patches, mask_patches):
-            print(patch.max(), patch.min())
 
             if self.use_augmentations:
                 transformed = self.transform(image=patch, mask=mask)
@@ -50,7 +49,6 @@ class BaseDataset(IterableDataset, ABC):
             mask_percentage = mask.sum() / np.prod(mask.shape)
             if mask_percentage < self.options.MIN_MASK_PERCENTAGE:
                 continue
-            print(patch.max(), patch.min())
             item = {
                 'img': torch.Tensor(patch.astype(np.float32)/255.0).permute(2, 0, 1), # normalize to [0, 1] and reshape to C,W,H
                 'mask': torch.Tensor(mask)
