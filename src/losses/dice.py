@@ -10,10 +10,10 @@ class DiceLoss(nn.Module):
     def forward(self, pred, target):
         """Copied from https://towardsdatascience.com/how-accurate-is-image-segmentation-dd448f896388"""
         num = target.size(0)
-        inputs = inputs.reshape(num, -1)
+        pred = pred.reshape(num, -1)
         target = target.reshape(num, -1)
-        intersection = (inputs * target)
-        dice = (2. * intersection.sum(1) + self.smooth) / (inputs.sum(1) + target.sum(1) + self.smooth)
+        intersection = (pred * target)
+        dice = (2. * intersection.sum(1) + self.smooth) / (pred.sum(1) + target.sum(1) + self.smooth)
         dice = 1 - dice.sum() / num
         return dice, {'dice': dice}  
 

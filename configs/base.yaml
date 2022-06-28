@@ -1,3 +1,4 @@
+EXP_NAME: "UNet"
 DATASET:
   BATCHSIZE: 32
   

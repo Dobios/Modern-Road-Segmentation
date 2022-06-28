@@ -50,7 +50,7 @@ class BaseDataset(IterableDataset, ABC):
             if mask_percentage < self.options.MIN_MASK_PERCENTAGE:
                 continue
             item = {
-                'img': torch.Tensor(patch.astype(np.float32)/255.0).permute(2, 0, 1), # normalize to [0, 1] and reshape to C,W,H
+                'image': torch.Tensor(patch.astype(np.float32)/255.0).permute(2, 0, 1), # normalize to [0, 1] and reshape to C,W,H
                 'mask': torch.Tensor(mask)
             }
             yield item
@@ -85,7 +85,7 @@ class MassachusettsDataset(BaseDataset):
         super().__init__(options, is_train, use_augmentations)
         
         metadata = pd.read_csv(os.path.join(self.options.MASSACHUSETTS.PATH, 'metadata.csv'))
-        splits = self.options.MASSACHUSETTS.TRAIN_SPLITS if self.is_train else self.options.MASSACHUSETTS.TEST_SPLITS
+        splits = self.options.MASSACHUSETTS.TRAIN_SPLITS if self.is_train else self.options.MASSACHUSETTS.VAL_SPLITS
         metadata = metadata[metadata["split"].isin(splits.split(","))]
         self.metadata = metadata[["tiff_image_path", "tif_label_path"]]
         self.metadata = self.metadata.reset_index(drop=True)

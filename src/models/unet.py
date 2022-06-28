@@ -1,6 +1,7 @@
 from re import X
 import torch.nn as nn
 import torch 
+from loguru import logger
 
 """
 Implementation of UNet from https://arxiv.org/pdf/1505.04597.pdf
@@ -11,7 +12,7 @@ https://github.com/milesial/Pytorch-UNet/tree/master/unet
 """
 
 class DoubleConvBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding=1, stride=1, dilation=1, groups=1, bias=True):
+    def __init__(self, in_channels, out_channels, kernel_size=3, padding=1, stride=1, dilation=1, groups=1, bias=True):
         super().__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding, stride=stride, dilation=dilation, groups=groups, bias=bias)
         self.bn1 = nn.BatchNorm2d(out_channels)
@@ -48,11 +49,12 @@ class DecoderBlock(nn.Module):
 
     def forward(self, inputs, skip):
         x = self.up(inputs)
-        diffY = skip.size()[2] - inputs.size()[2]
-        diffX = skip.size()[3] - inputs.size()[3]
+        #diffY = skip.size()[2] - inputs.size()[2]
+        #diffX = skip.size()[3] - inputs.size()[3]
+        #logger.info(f"{x.shape} {skip.shape} {diffY} {diffX}")   
+        #x = nn.functional.pad(x, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2])
+        #logger.info(f"{x.shape} {skip.shape} {diffY} {diffX}")   
 
-        x = nn.functional.pad(x, [diffX // 2, diffX - diffX // 2,
-                        diffY // 2, diffY - diffY // 2])
         x = torch.cat([x, skip], axis=1)
         x = self.conv(x)
         return x
@@ -81,6 +83,7 @@ class UNet(nn.Module):
 
         # Classifier 1x1 conv to reduce channels to 1
         self.outconv = nn.Conv2d(64, 1, kernel_size=1, padding=0)
+        self.sigm = nn.Sigmoid()
 
     def forward(self, inputs):
         s1, p1 = self.e1(inputs)
@@ -93,4 +96,5 @@ class UNet(nn.Module):
         d3 = self.d3(d2, s2)
         d4 = self.d4(d3, s1)
         outputs = self.outconv(d4)
+        outputs = self.sigm(outputs)
         return outputs

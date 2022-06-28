@@ -6,17 +6,20 @@ DEEPGLOBE_PATH = 'data/deepglobe'
 # Set default config parameters
 _C = CN()
 
+_C.LOGDIR = "logs"
+_C.EXP_NAME = "UNetTest"
+
 # Dataset
 _C.DATASET = CN()
-_C.DATASET.BATCHSIZE = 64
-_C.DATASET.WORKERS = 8
+_C.DATASET.BATCHSIZE = 32
+_C.DATASET.WORKERS = 4
 _C.DATASET.TRAIN_DS = 'massachusetts,deepglobe'
 _C.DATASET.IMG_SIZE = 224
 _C.DATASET.STRIDE = _C.DATASET.IMG_SIZE // 2
 _C.DATASET.MASSACHUSETTS = CN()
 _C.DATASET.MASSACHUSETTS.PATH = MASSACHUSETTS_PATH
-_C.DATASET.MASSACHUSETTS.TRAIN_SPLITS = 'train'
-_C.DATASET.MASSACHUSETTS.TEST_SPLITS = 'test'
+_C.DATASET.MASSACHUSETTS.TRAIN_SPLITS = 'train,val'
+_C.DATASET.MASSACHUSETTS.VAL_SPLITS = 'test'
 _C.DATASET.DEEPGLOBE = CN()
 _C.DATASET.DEEPGLOBE.PATH = DEEPGLOBE_PATH
 _C.DATASET.AUG = CN()
@@ -32,7 +35,7 @@ _C.MODEL.ARCH = 'UNet'
 
 # Loss
 _C.LOSS = CN()
-_C.LOSS.NAME = "DICE"
+_C.LOSS.NAME = "DiceLoss"
 _C.LOSS.DICE = CN()
 _C.LOSS.DICE.SMOOTH = 1.0
 
@@ -45,7 +48,7 @@ _C.OPTIMIZER.WD = 0.0
 _C.TRAINING = CN()
 _C.TRAINING.LOG_FREQ_IMAGES = 5000
 _C.TRAINING.LOG_IMAGES = True
-
+_C.TRAINING.EPOCHS = 100 
 def get_cfg_defaults():
   """Get a yacs CfgNode object with default values for my_project."""
   # Return a clone so that the defaults will not be altered

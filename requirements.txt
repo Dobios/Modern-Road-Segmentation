@@ -6,3 +6,5 @@ albumentations
 kaggle
 yacs
 pytorch_lightning
+loguru
+pandas
