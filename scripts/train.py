@@ -63,8 +63,8 @@ def main(configs, fast_dev_run=False):
         max_epochs=configs.TRAINING.EPOCHS, # total number of epochs
         callbacks=callbacks,
         log_every_n_steps=50,
-        terminate_on_nan=True,
         default_root_dir=log_dir,
+        detect_anomaly=True,
         fast_dev_run=fast_dev_run,
     )
 

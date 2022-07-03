@@ -1,4 +1,7 @@
 EXP_NAME: "UNet"
+LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
 DATASET:
   BATCHSIZE: 32
+  MASSACHUSETTS:
+          PATH: '/cluster/scratch/jminder/RoadSegmentation/data/massachusetts'     
   

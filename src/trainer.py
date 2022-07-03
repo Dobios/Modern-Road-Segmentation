@@ -13,9 +13,12 @@ class RoadSegmentationTrainer(pl.LightningModule):
     def __init__(self, options) -> None:
         super().__init__()
         self.options = options
+        self.hparams.update(options)
         self.model = getattr(models, options.MODEL.ARCH)(options.MODEL)
 
         self.loss = getattr(losses, options.LOSS.NAME)(options.LOSS)
+
+        self.save_hyperparameters()
 
     def forward(self, x):
         return self.model(x)
@@ -30,7 +33,6 @@ class RoadSegmentationTrainer(pl.LightningModule):
         x = x.detach().to('cpu')
         y = y.detach().to('cpu')
         y_hat = y_hat.detach().to('cpu')
-        logger.info(f"{x.shape}, {y.shape} (min {y.min()}, max {y.max()}), {y_hat.shape} (min {y_hat.min()}, max {y_hat.max()})")
         imgstack = x[0].permute(1, 2, 0)
         gtstack = y[0]
         predstack = y_hat[0][0]
@@ -59,7 +61,7 @@ class RoadSegmentationTrainer(pl.LightningModule):
         y_hat = self.forward(x)
         loss, loss_dict = self.loss(y_hat, y)
 
-        self.log_dict(loss_dict)   
+        self.log_dict(loss_dict)
 
 
         if batch_idx % self.options.TRAINING.LOG_FREQ_IMAGES == 0 and self.options.TRAINING.LOG_IMAGES:
@@ -73,6 +75,7 @@ class RoadSegmentationTrainer(pl.LightningModule):
         y_hat = self.forward(x)
         loss, loss_dict = self.loss(y_hat, y)
         self.log_dict(loss_dict)
+        self.log("val_loss", loss)
         return {'val_loss': loss, 'log': loss_dict}
 
     def train_dataloader(self):
