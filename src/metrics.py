@@ -26,4 +26,6 @@ def accuracy(y_hat, y):
 
 
 def jaccard(y_hat, y):
+    y_hat =y_hat.round().to(torch.int)
+    y = y.round().to(torch.int)
     return jaccard_index(y_hat, y, 2, average="weighted")
