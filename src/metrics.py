@@ -3,6 +3,7 @@ from .utils import patchify
 from sklearn.metrics import f1_score as f1
 import numpy as np
 import torch
+from torchmetrics.functional import jaccard_index
 from loguru import logger
 
 def f1_score(y_hat, y):
@@ -22,3 +23,7 @@ def accuracy(y_hat, y):
     if y_hat.dtype == torch.bool: # patchify returns bool
         return (y_hat == y).float().mean()
     return (y_hat.round() == y.round()).float().mean()
+
+
+def jaccard(y_hat, y):
+    return jaccard_index(y_hat, y, 2, average="weighted")

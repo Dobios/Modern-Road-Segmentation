@@ -2,6 +2,7 @@ numpy
 wandb
 torch
 torchvision
+torchmetrics
 albumentations
 kaggle
 yacs

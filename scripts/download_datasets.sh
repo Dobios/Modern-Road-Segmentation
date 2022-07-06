@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DATA_DIR="/cluster/scratch/jminder/RoadSegmentation/data"
-DATA_DIR="data"
+#DATA_DIR="data" # Only for local runs
 
 
 if [ ! -d $DATA_DIR ]; then

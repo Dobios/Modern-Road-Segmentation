@@ -7,7 +7,7 @@ from loguru import logger
 
 from . import models
 from . import losses
-from .metrics import accuracy, f1_score
+from .metrics import accuracy, f1_score, jaccard
 from .utils import patchify, create_submission
 
 class RoadSegmentationTrainer(pl.LightningModule):
@@ -33,7 +33,11 @@ class RoadSegmentationTrainer(pl.LightningModule):
     def calc_metrics(self, y_hat, y, prefix="val_"):
         patched_y_hat = patchify(y_hat)
         patched_y = patchify(y)
-        return {f'{prefix}acc': accuracy(y_hat, y), f'{prefix}patched_acc': accuracy(patched_y_hat, patched_y), f'{prefix}f1': f1_score(y_hat.numpy(), y.numpy()), f'{prefix}patched_f1': f1_score(patched_y_hat.numpy(), patched_y.numpy())}
+        return {f'{prefix}acc': accuracy(y_hat, y), 
+            f'{prefix}patched_acc': accuracy(patched_y_hat, patched_y), 
+            f'{prefix}f1': f1_score(y_hat.numpy(), y.numpy()), 
+            f'{prefix}patched_f1': f1_score(patched_y_hat.numpy(), patched_y.numpy()),
+            f'{prefix}jacc': jaccard(y_hat, y)}
 
     def log_images(self, x, y, y_hat):
         x = x.detach().to('cpu')
@@ -59,14 +63,13 @@ class RoadSegmentationTrainer(pl.LightningModule):
         })
 
     def training_step(self, batch, batch_idx):
-
         # Get data from batch
         x = batch['image']
         y = batch['mask']
 
         y_hat = self.forward(x).squeeze(1)
         loss, loss_dict = self.loss(y_hat, y)
-        metrics = self.calc_metrics(y_hat.detach().to('cpu'), y.detach().to('cpu'), prefix="train_")
+        metrics = self.calc_metrics(y_hat.detach().cpu(), y.detach().cpu(), prefix="train_")
 
         for key, value in loss_dict.items():
             self.log(key, value)
@@ -85,7 +88,7 @@ class RoadSegmentationTrainer(pl.LightningModule):
         y = batch['mask']
         y_hat = self.forward(x).squeeze(1) # only take the first and only channel
         loss, loss_dict = self.loss(y_hat, y)
-        metrics = self.calc_metrics(y_hat, y)
+        metrics = self.calc_metrics(y_hat.detach().cpu(), y.detach().cpu())
 
         for key, value in loss_dict.items():
             self.log(key, value)
