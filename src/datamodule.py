@@ -46,5 +46,5 @@ class DataModule(pl.LightningDataModule):
         return DataLoader(self.val_ds, batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
 
     def test_dataloader(self):
-        # Test is not passed as patched dataset and loaded with batch size 1
-        return DataLoader(self.test_ds, batch_size=32)
+        # Test is not passed as patched dataset and loaded with batch size 4 (otherwise out of mem can happen)
+        return DataLoader(self.test_ds, batch_size=4)

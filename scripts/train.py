@@ -44,6 +44,10 @@ def main(configs, fast_dev_run=False, predict=False):
     # check HPSTrainer to see training, validation, testing loops
     model = RoadSegmentationTrainer(configs).to(device)
     
+    if configs.TRAINING.PRETRAINED_MODEL is not None:
+        logger.info(f'Loading pretrained model from {configs.TRAINING.PRETRAINED_MODEL}')
+        model.load_state_dict(configs.TRAINING.PRETRAINED_MODEL)
+
     # WandB should log gradients and model topology
     wandb_logger.watch(model)
 
@@ -51,13 +55,16 @@ def main(configs, fast_dev_run=False, predict=False):
     ckpt_callback = ModelCheckpoint(
         monitor='val_loss',
         verbose=True,
-        save_top_k=10, # reduce this if you don't have enough storage
+        save_top_k=10,
         mode='min',
     )
 
     callbacks = [ckpt_callback]
     
     no_gpus = 1 if torch.cuda.is_available() else 0
+
+    if configs.TRAINING.RESUME_CKPT is not None:
+        logger.info(f'Resuming from checkpoint: {configs.TRAINING.RESUME_CKPT}')
 
     trainer = pl.Trainer(
         gpus=no_gpus,
@@ -68,12 +75,15 @@ def main(configs, fast_dev_run=False, predict=False):
         default_root_dir=log_dir,
         detect_anomaly=True,
         fast_dev_run=fast_dev_run,
+        resume_from_checkpoint=configs.TRAINING.RESUME_CKPT,
     )
 
     datamodule = DataModule(configs.DATASET)
     logger.info('*** Started training ***')
     trainer.fit(model, datamodule=datamodule)
-
+    logger.info('*** Finished training ***')
+    logger.info(f'Best validation loss: {ckpt_callback.best_model_score}')
+    logger.info(f'Best model saved at {ckpt_callback.best_model_path}')
     if predict:
         logger.info('*** Started testing ***')
         trainer.test(model, datamodule=datamodule)
