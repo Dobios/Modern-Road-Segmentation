@@ -30,7 +30,7 @@ class RoadSegmentationTrainer(pl.LightningModule):
             lr=self.options.OPTIMIZER.LR,
             weight_decay=self.options.OPTIMIZER.WD)
 
-    def calc_metrics(self, y_hat, y, prefix="val_"):
+    def calc_metrics(self, y_hat, y, prefix="val/"):
         patched_y_hat = patchify(y_hat)
         patched_y = patchify(y)
         return {f'{prefix}acc': accuracy(y_hat, y), 
@@ -69,13 +69,13 @@ class RoadSegmentationTrainer(pl.LightningModule):
 
         y_hat = self.forward(x).squeeze(1)
         loss, loss_dict = self.loss(y_hat, y)
-        metrics = self.calc_metrics(y_hat.detach().cpu(), y.detach().cpu(), prefix="train_")
-
         for key, value in loss_dict.items():
             self.log(key, value)
-        
-        for key, value in metrics.items():
-            self.log(key, value, on_epoch=True)
+
+        if self.options.TRAINING.CALC_METRICS:
+            metrics = self.calc_metrics(y_hat.detach().cpu(), y.detach().cpu(), prefix="train/")
+            for key, value in metrics.items():
+                self.log(key, value, on_epoch=True)
 
         if batch_idx % self.options.TRAINING.LOG_FREQ_IMAGES == 0 and self.options.TRAINING.LOG_IMAGES:
             self.log_images(x, y, y_hat)
@@ -88,10 +88,11 @@ class RoadSegmentationTrainer(pl.LightningModule):
         y = batch['mask']
         y_hat = self.forward(x).squeeze(1) # only take the first and only channel
         loss, loss_dict = self.loss(y_hat, y)
+        self.log("val_loss", loss)
         metrics = self.calc_metrics(y_hat.detach().cpu(), y.detach().cpu())
 
         for key, value in loss_dict.items():
-            self.log(key, value)
+            self.log("val/" + key, value)
         
         for key, value in metrics.items():
             self.log(key, value, on_epoch=True)
