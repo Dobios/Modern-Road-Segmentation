@@ -71,10 +71,8 @@ class UNet(nn.Module):
         self.e2 = EncoderBlock(64, 128)
         self.e3 = EncoderBlock(128, 256)
         self.e4 = EncoderBlock(256, 512)
-
         # Bottleneck
         self.b = DoubleConvBlock(512, 1024)
-        
         # Decoder
         self.d1 = DecoderBlock(1024, 512)
         self.d2 = DecoderBlock(512, 256)
@@ -91,6 +89,7 @@ class UNet(nn.Module):
         s3, p3 = self.e3(p2)
         s4, p4 = self.e4(p3)
         b = self.b(p4)
+
         d1 = self.d1(b, s4)
         d2 = self.d2(d1, s3)
         d3 = self.d3(d2, s2)

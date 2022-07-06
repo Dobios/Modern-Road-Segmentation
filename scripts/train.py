@@ -7,15 +7,17 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
+
 sys.path.append('.')
 from torch.optim.swa_utils import AveragedModel, SWALR
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
 
 from src.trainer import RoadSegmentationTrainer
+from src.datamodule import DataModule
 from src.config import get_cfg_defaults
 
-def main(configs, fast_dev_run=False):
+def main(configs, fast_dev_run=False, predict=False):
     log_dir = configs.LOGDIR
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -68,10 +70,13 @@ def main(configs, fast_dev_run=False):
         fast_dev_run=fast_dev_run,
     )
 
-
+    datamodule = DataModule(configs.DATASET)
     logger.info('*** Started training ***')
-    trainer.fit(model)
+    #trainer.fit(model, datamodule=datamodule)
 
+    if predict:
+        logger.info('*** Started testing ***')
+        trainer.test(model, datamodule=datamodule)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -80,6 +85,8 @@ if __name__ == "__main__":
                         help='path to the configuration yaml file')
     parser.add_argument('--fdr', action='store_true',
                         help='fast_dev_run mode: will run a full train, val and test loop using 1 batch(es)')
+    parser.add_argument('--predict', '-p', action='store_true', default=False)
+
 
     args = parser.parse_args()
 
@@ -88,4 +95,4 @@ if __name__ == "__main__":
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     
-    main(cfg, args.fdr)
+    main(cfg, args.fdr, args.predict)
