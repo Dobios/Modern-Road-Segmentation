@@ -72,7 +72,7 @@ def main(configs, fast_dev_run=False, predict=False):
 
     datamodule = DataModule(configs.DATASET)
     logger.info('*** Started training ***')
-    #trainer.fit(model, datamodule=datamodule)
+    trainer.fit(model, datamodule=datamodule)
 
     if predict:
         logger.info('*** Started testing ***')

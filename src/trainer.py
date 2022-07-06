@@ -41,11 +41,11 @@ class RoadSegmentationTrainer(pl.LightningModule):
         y_hat = y_hat.detach().to('cpu')
         imgstack = x[0].permute(1, 2, 0)
         gtstack = y[0]
-        predstack = y_hat[0][0]
+        predstack = y_hat[0]
         for i in range(1, 4):
             imgstack = torch.cat((imgstack, x[i].permute(1, 2, 0)), axis=0)
             gtstack = torch.cat((gtstack, y[i]), axis=0)
-            predstack = torch.cat((predstack, y_hat[i][0]), axis=0)
+            predstack = torch.cat((predstack, y_hat[i]), axis=0)
         gtstack = cv2.cvtColor(gtstack.numpy(), cv2.COLOR_GRAY2RGB)
         predstack = cv2.cvtColor(predstack.numpy(), cv2.COLOR_GRAY2RGB)
         imgstack = imgstack.numpy()
@@ -53,7 +53,6 @@ class RoadSegmentationTrainer(pl.LightningModule):
         gt = np.concatenate((imgstack, gtstack), axis=1)
         pred = np.concatenate((imgstack, predstack), axis=1)
         # wandb
-        logger.info(f"gt: {gt.shape}, pred: {pred.shape}")
         self.logger.experiment.log({
             "samples": [wandb.Image(cv2.cvtColor(pred, cv2.COLOR_BGR2RGB), caption="predicted"),
                         wandb.Image(cv2.cvtColor(gt, cv2.COLOR_BGR2RGB), caption="gt")]

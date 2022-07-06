@@ -59,7 +59,6 @@ class PatchedDataset(IterableDataset, ABC):
         else:
             self.stride = self.options.IMG_SIZE
 
-        logger.info("Stride: {}".format(self.stride, self.is_train))
         self.shuffle = self.options.SHUFFLE if self.is_train else False
 
         if self.use_augmentations:
