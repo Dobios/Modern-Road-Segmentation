@@ -42,11 +42,12 @@ def main(configs, fast_dev_run=False, predict=False):
 
     # This is where we initialize the model specific training routines
     # check HPSTrainer to see training, validation, testing loops
-    model = RoadSegmentationTrainer(configs).to(device)
-    
     if configs.TRAINING.PRETRAINED_MODEL is not None:
         logger.info(f'Loading pretrained model from {configs.TRAINING.PRETRAINED_MODEL}')
-        model.load_state_dict(configs.TRAINING.PRETRAINED_MODEL)
+        model = RoadSegmentationTrainer.load_from_checkpoint(configs.TRAINING.PRETRAINED_MODEL).to(device)
+    else:
+        model = RoadSegmentationTrainer(configs).to(device)
+    
 
     # WandB should log gradients and model topology
     wandb_logger.watch(model)

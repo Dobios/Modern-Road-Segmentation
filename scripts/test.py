@@ -32,9 +32,8 @@ def main(configs, model_path):
 
     # This is where we initialize the model specific training routines
     # check HPSTrainer to see training, validation, testing loops
-    model = RoadSegmentationTrainer(configs).to(device)
+    model = RoadSegmentationTrainer.load_from_checkpoint(model_path).to(device)
     logger.info(f'Loading pretrained model from {model_path}')
-    model.load_state_dict(model_path)
     
     
     no_gpus = 1 if torch.cuda.is_available() else 0
