@@ -66,6 +66,8 @@ _C.TRAINING.CALC_METRICS = False
 # Test
 _C.TEST = CN()
 _C.TEST.SUBMISSION_PATH = "submission.csv"
+_C.TEST.USE_TTA = False
+_C.TEST.TTA_STRATEGY = "mean"
 
 def get_cfg_defaults():
   """Get a yacs CfgNode object with default values for my_project."""

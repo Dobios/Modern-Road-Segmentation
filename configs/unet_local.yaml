@@ -23,3 +23,9 @@ TRAINING:
   LOG_FREQ_IMAGES: 30 
   LOG_IMAGES: True
   EPOCHS: 200
+
+TEST:
+  USE_TTA: True
+  
+LOSS:
+  NAME: "BCELoss"
