@@ -44,7 +44,7 @@ def main(configs, fast_dev_run=False, predict=False):
     # check HPSTrainer to see training, validation, testing loops
     if configs.TRAINING.PRETRAINED_MODEL is not None:
         logger.info(f'Loading pretrained model from {configs.TRAINING.PRETRAINED_MODEL}')
-        model = RoadSegmentationTrainer.load_from_checkpoint(configs.TRAINING.PRETRAINED_MODEL).to(device)
+        model = RoadSegmentationTrainer.load_from_checkpoint(configs.TRAINING.PRETRAINED_MODEL, options=configs).to(device)
     else:
         model = RoadSegmentationTrainer(configs).to(device)
     
@@ -87,8 +87,10 @@ def main(configs, fast_dev_run=False, predict=False):
     logger.info(f'Best model saved at {ckpt_callback.best_model_path}')
     if predict:
         logger.info('*** Started testing ***')
+        logger.info(f'Loading best model...')
+        model = RoadSegmentationTrainer.load_from_checkpoint(ckpt_callback.best_model_path, options=configs).to(device)
         trainer.test(model, datamodule=datamodule)
-
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 

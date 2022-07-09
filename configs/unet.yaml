@@ -1,4 +1,4 @@
-EXP_NAME: "UNet_CILonly"
+EXP_NAME: "UNet_CIL_bcedice_mmp0"
 LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
 DATASET:
   BATCHSIZE: 32
@@ -10,7 +10,8 @@ DATASET:
   CIL:
     PATH: '/cluster/scratch/jminder/RoadSegmentation/data/cil'     
   USE_AUG: True
-  
+  MIN_MASK_PERCENTAGE: 0.0
+
   AUG:
     ROTATE_PROB: 0.75
     FLIP_PROB: 0.5
@@ -20,6 +21,11 @@ OPTIMIZER:
   LR: 0.0001
 
 TRAINING:
-  LOG_FREQ_IMAGES: 30 
   LOG_IMAGES: True
   EPOCHS: 200
+  PRETRAINED_MODEL: None
+LOSS:
+  NAME: "BCEDiceLoss"
+
+TEST:
+  SUBMISSION_PATH: "pt_mmp0_submission.csv"

@@ -9,7 +9,7 @@ if [ ! -d $DATA_DIR ]; then
 fi
 
 # Download Massachussets Road Dataset
-MASSACHUSSETS_PATH="$DATA_DIR/massachusetts/"
+MASSACHUSSETS_PATH="$DATA_DIR/massachusetts-roads/"
 if [ ! -d $MASSACHUSSETS_PATH ]; then
   mkdir $MASSACHUSSETS_PATH
   kaggle datasets download balraj98/massachusetts-roads-dataset -p $MASSACHUSSETS_PATH --unzip
@@ -45,4 +45,16 @@ if [ ! -d $CLI_PATH ]; then
   fi
   unzip $CLI_PATH/cil-road-segmentation-2022.zip -d $CLI_PATH
   rm $CLI_PATH/cil-road-segmentation-2022.zip
+fi
+
+# Download AIRS Dataset
+AIRS_PATH="$DATA_DIR/airs/"
+if [ ! -d $AIRS_PATH ]; then
+  mkdir $AIRS_PATH
+  kaggle datasets download atilol/aerialimageryforroofsegmentation -p $AIRS_PATH --unzip
+  if [ "$?" -ne 0 ]; then
+    echo "Error downloading AIRS dataset"
+    rm -rf $AIRS_PATH
+    exit 1;
+  fi
 fi
