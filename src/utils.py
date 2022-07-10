@@ -6,6 +6,8 @@ from .constants import PATCH_SIZE, CUTOFF
 from loguru import logger
 from scipy.ndimage import median_filter
 from skimage.filters import threshold_local
+import matplotlib.pyplot as plt
+
 
 def read_img(img_fn):
     """Read image from disk"""
@@ -51,6 +53,7 @@ def create_submission(labels, test_filenames, submission_filename):
 def median_blur_batch(imgs, ksize=15):
     """Median blur batch"""
     batch_size = imgs.shape[0]
+    #res = np.empty_like(imgs)
     for i in range(batch_size):
         imgs[i] = median_filter(imgs[i], ksize)
     return imgs
@@ -58,10 +61,20 @@ def median_blur_batch(imgs, ksize=15):
 def threshold_batch(imgs, ksize=15):
     """Threshold batch"""
     batch_size = imgs.shape[0]
+    #res = np.empty_like(imgs)
     for i in range(batch_size):
-        imgs[i] = threshold_local(imgs[i], ksize)
+        imgs[i] = imgs[i] > threshold_local(imgs[i], ksize)
     return imgs
 
 def remove_low_noise(imgs, thres=0.1):
     imgs[imgs<thres] = 0
     return imgs
+
+def show_first(item):
+    """Show img and mask"""
+    plt.figure(figsize=(12, 12))
+    plt.subplot(1, 2, 1)
+    plt.imshow(item["image"].permute(0, 2, 3, 1)[0])
+    plt.subplot(1, 2, 2)
+    plt.imshow(item["mask"][0])
+    plt.show()

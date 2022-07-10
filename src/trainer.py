@@ -139,7 +139,7 @@ class RoadSegmentationTrainer(pl.LightningModule):
 
         y_hat_patched = patchify(torch.Tensor(y_hat_pp))
             
-        return {"predictions": y_hat_patched, "mask": y_hat, "names": batch["image_path"]}
+        return {"predictions": y_hat_patched, "mask": y_hat_pp, "names": batch["image_path"]}
     
     def test_epoch_end(self, outputs, dataloader_idx=0):
         """Saves submission file."""
