@@ -32,7 +32,7 @@ def main(configs, model_path):
 
     # This is where we initialize the model specific training routines
     # check HPSTrainer to see training, validation, testing loops
-    model = RoadSegmentationTrainer.load_from_checkpoint(model_path).to(device)
+    model = RoadSegmentationTrainer.load_from_checkpoint(model_path, options=configs).to(device)
     logger.info(f'Loading pretrained model from {model_path}')
     
     

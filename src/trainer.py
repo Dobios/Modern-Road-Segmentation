@@ -4,11 +4,11 @@ import numpy as np
 import cv2
 import wandb
 from loguru import logger
-
+from skimage.morphology import remove_small_objects
 from . import models
 from . import losses
 from .metrics import accuracy, f1_score, jaccard
-from .utils import patchify, create_submission
+from .utils import patchify, create_submission, median_blur_batch, remove_low_noise, threshold_batch
 
 class RoadSegmentationTrainer(pl.LightningModule):
     def __init__(self, options) -> None:
@@ -97,6 +97,18 @@ class RoadSegmentationTrainer(pl.LightningModule):
             self.log(key, value, on_epoch=True)
         return loss
 
+    def postprocessing(self, y_hat):
+        """Postprocesses predictions."""
+        if self.hparams.TEST.POSTPROCESSING.USE_MEDIAN_BLUR:
+            y_hat = median_blur_batch(y_hat, self.hparams.TEST.POSTPROCESSING.MEDIAN_BLUR_KERNEL)
+        if self.hparams.TEST.POSTPROCESSING.USE_LOW_NOISE_REMOVAL:
+            remove_low_noise(y_hat, self.hparams.TEST.POSTPROCESSING.LOW_NOISE_REMOVAL_THRES)
+        if self.hparams.TEST.POSTPROCESSING.USE_GAUS_THRES:
+            y_hat = threshold_batch(y_hat, self.hparams.TEST.POSTPROCESSING.GAUS_THRES_KERNEL)
+        if self.hparams.TEST.POSTPROCESSING.USE_BLOB_REMOVAL:
+            y_hat = remove_small_objects(y_hat>0, self.hparams.TEST.POSTPROCESSING.BLOB_REMOVAL_SIZE)
+        return y_hat
+
     def test_step(self, batch, batch_idx, dataloader_idx=0):
         x = batch['image']
 
@@ -122,7 +134,10 @@ class RoadSegmentationTrainer(pl.LightningModule):
                 y_hat = self.forward(x).squeeze(1)
                 y_hat = y_hat.detach().to('cpu')
 
-        y_hat_patched = patchify(y_hat)
+
+        y_hat_pp = self.postprocessing(y_hat.detach().cpu().numpy())
+
+        y_hat_patched = patchify(torch.Tensor(y_hat_pp))
             
         return {"predictions": y_hat_patched, "mask": y_hat, "names": batch["image_path"]}
     

@@ -4,6 +4,8 @@ import torch
 import re
 from .constants import PATCH_SIZE, CUTOFF
 from loguru import logger
+from scipy.ndimage import median_filter
+from skimage.filters import threshold_local
 
 def read_img(img_fn):
     """Read image from disk"""
@@ -45,3 +47,21 @@ def create_submission(labels, test_filenames, submission_filename):
             for i in range(patch_array.shape[0]):
                 for j in range(patch_array.shape[1]):
                     f.write("{:03d}_{}_{},{}\n".format(img_number, j*PATCH_SIZE, i*PATCH_SIZE, int(patch_array[i, j])))
+
+def median_blur_batch(imgs, ksize=15):
+    """Median blur batch"""
+    batch_size = imgs.shape[0]
+    for i in range(batch_size):
+        imgs[i] = median_filter(imgs[i], ksize)
+    return imgs
+
+def threshold_batch(imgs, ksize=15):
+    """Threshold batch"""
+    batch_size = imgs.shape[0]
+    for i in range(batch_size):
+        imgs[i] = threshold_local(imgs[i], ksize)
+    return imgs
+
+def remove_low_noise(imgs, thres=0.1):
+    imgs[imgs<thres] = 0
+    return imgs
