@@ -1,5 +1,5 @@
 EXP_NAME: "UNet_CIL_dice_ptMSRoads_mmp0"
-LOGDIR: 'logs/'
+LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
 DATASET:
   BATCHSIZE: 32
   TRAIN_DS: 'cil'
@@ -8,9 +8,9 @@ DATASET:
   PATCH_SIZE: 208
   PATCH_STRIDE: 96
   CIL:
-    PATH: 'data/cil'     
+    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/cil'     
   USE_AUG: True
-  MIN_MASK_PERCENTAGE: 0.0
+  MIN_MASK_PERCENTAGE: 0.1
 
   AUG:
     ROTATE_PROB: 0.75
@@ -31,3 +31,8 @@ TEST:
   SUBMISSION_PATH: "pt_msroads_ttam_pp_submission.csv"
   USE_TTA: True
   TTA_STRATEGY: "mean"
+  POSTPROCESSING:
+    USE_MEDIAN_BLUR: True
+    USE_LOW_NOISE_REMOVAL: True
+    USE_GAUS_THRES: True
+    USE_BLOB_REMOVAL: True

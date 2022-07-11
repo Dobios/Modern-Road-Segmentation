@@ -5,3 +5,4 @@ CUTOFF = 0.25  # minimum average brightness for a mask patch to be classified as
 MASSACHUSETTS_PATH = 'data/massachusetts'
 DEEPGLOBE_PATH = 'data/deepglobe'
 CIL_PATH = 'data/cil'
+AIRS_PATH = '/cluster/scratch/jminder/RoadSegmentation/data/airs'

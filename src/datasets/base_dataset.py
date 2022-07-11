@@ -21,19 +21,20 @@ class BaseImageDataset(Dataset):
         self.has_mask = "mask_path" in self.metadata.columns
         self.cut_size = self.options.CUT_SIZE
         self.is_train = is_train
-
+        self.resize_to = self.options.RESIZE_TO
+        
     def __len__(self):
         return len(self.metadata)
 
     def __getitem__(self, index):
         img_fn = self.metadata.iloc[index]['image_path']
-        img = read_img(img_fn)
+        img = read_img(img_fn, self.resize_to)
         if self.cut_size is not None:
             img = img[:self.cut_size, :self.cut_size, :]
         item = {'image': torch.Tensor(img.astype(np.float32)/255.0).permute(2, 0, 1), "image_path": img_fn}
         if self.has_mask:
             mask_fn = self.metadata.iloc[index]['mask_path']
-            mask = read_mask(mask_fn)
+            mask = read_mask(mask_fn, self.resize_to)
             if self.cut_size is not None:
                 mask = mask[:self.cut_size, :self.cut_size]
             item['mask'] = torch.Tensor(mask)
@@ -57,7 +58,7 @@ class PatchedDataset(IterableDataset, ABC):
         if self.is_train:
             self.stride = self.options.PATCH_STRIDE
         else:
-            self.stride = self.options.IMG_SIZE
+            self.stride = self.options.PATCH_SIZE
 
         self.shuffle = self.options.SHUFFLE if self.is_train else False
 

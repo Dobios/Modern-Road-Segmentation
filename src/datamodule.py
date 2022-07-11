@@ -2,7 +2,7 @@ from click import option
 import pytorch_lightning as pl
 from torch.utils.data import random_split, DataLoader
 from math import ceil, floor
-from .datasets import BaseImageDataset, PatchedDataset, load_cil_metadata, load_massachusetts_metadata
+from .datasets import BaseImageDataset, PatchedDataset, load_cil_metadata, load_massachusetts_metadata, load_airs_metadata
 
 class DataModule(pl.LightningDataModule):
     def __init__(self, options):
@@ -35,14 +35,25 @@ class DataModule(pl.LightningDataModule):
         if 'massachusetts' in self.options.TEST_DS:
             self.test_ds = BaseImageDataset(self.options, load_massachusetts_metadata, is_train=False)
 
+    def load_airs_base(self):
+        if 'airs' in self.options.TRAIN_DS:
+            self.train_ds = BaseImageDataset(self.options, load_airs_metadata, is_train=True)
+        if 'airs' in self.options.VAL_DS:
+            self.val_ds = BaseImageDataset(self.options, load_airs_metadata, is_train=False)
+        if 'airs' in self.options.TEST_DS:
+            raise NotImplemented("AIRS is not implemented as a test set.")
+
     def setup(self, stage=None):
         self.load_cil_base()
         self.load_massachusetts_base()
+        self.load_airs_base()
 
     def train_dataloader(self):
         return DataLoader(PatchedDataset(self.train_ds, self.options, is_train=True), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
 
     def val_dataloader(self):
+        if self.options.VAL_USE_PATCHED: 
+            return DataLoader(PatchedDataset(self.val_ds, self.options, is_train=False), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
         return DataLoader(self.val_ds, batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
 
     def test_dataloader(self):
