@@ -49,11 +49,11 @@ class DataModule(pl.LightningDataModule):
         self.load_airs_base()
 
     def train_dataloader(self):
-        return DataLoader(PatchedDataset(self.train_ds, self.options, is_train=True), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
+        return DataLoader(PatchedDataset(self.train_ds, self.options, is_train=True), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS, prefetch_factor=4)
 
     def val_dataloader(self):
         if self.options.VAL_USE_PATCHED: 
-            return DataLoader(PatchedDataset(self.val_ds, self.options, is_train=False), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
+            return DataLoader(PatchedDataset(self.val_ds, self.options, is_train=False), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS, prefetch_factor=4, persistent_workers = True)
         return DataLoader(self.val_ds, batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS)
 
     def test_dataloader(self):
