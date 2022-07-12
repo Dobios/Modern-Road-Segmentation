@@ -24,3 +24,13 @@ def load_cil_metadata(options, is_train):
     else:
         images = sorted([f'{path}test/images/{fn}' for fn in os.listdir(f'{path}test/images/') if fn.endswith('.png')], key=lambda x: int(x.split('_')[1].split('.')[0]))
         return pd.DataFrame({'image_path': images})
+
+def load_airs_metadata(options, is_train):
+    path = options.AIRS.PATH
+    if not path.endswith("/"):
+        path += "/"
+    path += "train" if is_train else "val"
+    images = sorted([f'{path}/image/{fn}' for fn in os.listdir(f'{path}/image/') if fn.endswith('.tif')], key=lambda x: int(x.split('_')[1].split('.')[0]))
+    masks = sorted([f'{path}/label/{fn}' for fn in os.listdir(f'{path}/label/') if fn.endswith('vis.tif')], key=lambda x: int(x.split('_')[1].split('.')[0]))
+    return pd.DataFrame({'image_path': images, 'mask_path': masks})
+

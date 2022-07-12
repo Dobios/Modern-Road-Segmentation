@@ -9,16 +9,20 @@ from skimage.filters import threshold_local
 import matplotlib.pyplot as plt
 
 
-def read_img(img_fn):
+def read_img(img_fn, resize_to=None):
     """Read image from disk"""
     img = cv2.imread(img_fn)
     #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # crashes  in segfault when using multiple workers
     img = img[...,::-1] # BGR to RGB
+    if resize_to is not None and resize_to != (img.shape[1], img.shape[2]):  # resize images
+        img = cv2.resize(img, dsize=resize_to)
     return img.copy()
 
-def read_mask(mask_fn):
+def read_mask(mask_fn, resize_to=None):
     """Read mask from disk"""
     mask = cv2.imread(mask_fn, cv2.IMREAD_GRAYSCALE)
+    if resize_to is not None and resize_to != (mask.shape[0], mask.shape[1]):  # resize images
+        mask = cv2.resize(mask, dsize=resize_to)
     mask = mask.astype(np.float32)
     if mask.max() > 1:
         mask /= 255

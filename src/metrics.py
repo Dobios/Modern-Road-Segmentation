@@ -5,6 +5,8 @@ import numpy as np
 import torch
 from torchmetrics.functional import jaccard_index
 from loguru import logger
+import warnings
+warnings.filterwarnings('ignore')
 
 def f1_score(y_hat, y):
     # computes F1 score
