@@ -34,7 +34,7 @@ class RoadSegmentationTrainer(pl.LightningModule):
         patched_y = patchify(y)
         return {f'{prefix}acc': accuracy(y_hat, y), 
             f'{prefix}patched_acc': accuracy(patched_y_hat, patched_y), 
-            f'{prefix}f1': f1_score(y_hat.numpy(), y.numpy()), 
+            f'{prefix}f1': f1_score(y_hat.numpy()>0.5, y.numpy()>0.5), # binarize elements
             f'{prefix}patched_f1': f1_score(patched_y_hat.numpy(), patched_y.numpy()),
             f'{prefix}jacc': jaccard(y_hat, y)}
 

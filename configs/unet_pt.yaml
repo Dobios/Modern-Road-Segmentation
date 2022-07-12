@@ -1,4 +1,4 @@
-EXP_NAME: "UNet_CIL_dice_ptMSRoads_mmp0"
+EXP_NAME: "UNet_CIL_ptAIRS"
 LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
 DATASET:
   BATCHSIZE: 32
@@ -23,16 +23,16 @@ OPTIMIZER:
 TRAINING:
   LOG_IMAGES: True
   EPOCHS: 200
-  PRETRAINED_MODEL: '/cluster/scratch/jminder/RoadSegmentation/CIL-RoadSegmentation/68boo5nh/checkpoints/epoch=15-step=55596.ckpt'
+  PRETRAINED_MODEL: '/cluster/scratch/jminder/RoadSegmentation/CIL-RoadSegmentation/33p4waou/checkpoints/epoch=66-step=22189.ckpt' #AIRS
 LOSS:
-  NAME: "DiceLoss"
+  NAME: "BCEDiceLoss"
 
 TEST:
-  SUBMISSION_PATH: "pt_msroads_ttam_pp_submission.csv"
+  SUBMISSION_PATH: "pt_airs_ttat_submission.csv"
   USE_TTA: True
-  TTA_STRATEGY: "mean"
+  TTA_STRATEGY: "thres"
   POSTPROCESSING:
-    USE_MEDIAN_BLUR: True
-    USE_LOW_NOISE_REMOVAL: True
-    USE_GAUS_THRES: True
-    USE_BLOB_REMOVAL: True
+    USE_MEDIAN_BLUR: False
+    USE_LOW_NOISE_REMOVAL: False
+    USE_GAUS_THRES: False
+    USE_BLOB_REMOVAL: False
