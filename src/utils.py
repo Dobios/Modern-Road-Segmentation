@@ -20,7 +20,8 @@ def read_mask(mask_fn):
     """Read mask from disk"""
     mask = cv2.imread(mask_fn, cv2.IMREAD_GRAYSCALE)
     mask = mask.astype(np.float32)
-    mask /= 255.0
+    if mask.max() > 1:
+        mask /= 255
     return mask
 
 def unfold_data(img, mask, stride, size):
