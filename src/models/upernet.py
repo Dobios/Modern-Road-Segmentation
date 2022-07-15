@@ -1,8 +1,10 @@
+from turtle import back
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
 from loguru import logger
+from . import backbones
 
 """
 Implementation of UPerNet from:
@@ -45,56 +47,13 @@ class PSPModule(nn.Module):
         output = self.bottleneck(torch.cat(pyramids, dim=1))
         return output
 
-class ResNet(nn.Module):
-    def __init__(self, in_channels=3, output_stride=16, backbone='resnet101', pretrained=True):
-        super(ResNet, self).__init__()
-        model = getattr(models, backbone)(pretrained)
-        self.initial = nn.Sequential(
-            nn.Conv2d(in_channels, 64, 7, stride=2, padding=3, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        )
-        
-        self.layer1 = model.layer1
-        self.layer2 = model.layer2
-        self.layer3 = model.layer3
-        self.layer4 = model.layer4
 
-        if output_stride == 16: s3, s4, d3, d4 = (2, 1, 1, 2)
-        elif output_stride == 8: s3, s4, d3, d4 = (1, 1, 2, 4)
-
-        if output_stride == 8: 
-            for n, m in self.layer3.named_modules():
-                if 'conv1' in n and (backbone == 'resnet34' or backbone == 'resnet18'):
-                    m.dilation, m.padding, m.stride = (d3,d3), (d3,d3), (s3,s3)
-                elif 'conv2' in n:
-                    m.dilation, m.padding, m.stride = (d3,d3), (d3,d3), (s3,s3)
-                elif 'downsample.0' in n:
-                    m.stride = (s3, s3)
-
-        for n, m in self.layer4.named_modules():
-            if 'conv1' in n and (backbone == 'resnet34' or backbone == 'resnet18'):
-                m.dilation, m.padding, m.stride = (d4,d4), (d4,d4), (s4,s4)
-            elif 'conv2' in n:
-                m.dilation, m.padding, m.stride = (d4,d4), (d4,d4), (s4,s4)
-            elif 'downsample.0' in n:
-                m.stride = (s4, s4)
-
-    def forward(self, x):
-        x = self.initial(x)
-        x1 = self.layer1(x)
-        x2 = self.layer2(x1)
-        x3 = self.layer3(x2)
-        x4 = self.layer4(x3)
-
-        return [x1, x2, x3, x4]
 
 def up_and_add(x, y):
     return F.interpolate(x, size=(y.size(2), y.size(3)), mode='bilinear', align_corners=True) + y
 
 class FPN_fuse(nn.Module):
-    def __init__(self, feature_channels=[256, 512, 1024, 2048], fpn_out=256):
+    def __init__(self, feature_channels=[256, 512, 1024, 2048], fpn_out=128):
         super(FPN_fuse, self).__init__()
         assert feature_channels[0] == fpn_out
         self.conv1x1 = nn.ModuleList([nn.Conv2d(ft_size, fpn_out, kernel_size=1) for ft_size in feature_channels[1:]])
@@ -120,18 +79,23 @@ class FPN_fuse(nn.Module):
 
 class UperNet(nn.Module):
     # Implementing only the object path
-    def __init__(self, options, num_classes=1, in_channels=3, backbone='resnet101', pretrained=True, fpn_out=256, **_):
+    def __init__(self, options, num_classes=1, backbone='convnext_base', pretrained=True, **_):
         super(UperNet, self).__init__()
         self.options = options
 
-        if backbone == 'resnet34' or backbone == 'resnet18':
+        if backbone == 'convnext_base':
+            feature_channels = [128, 256, 512, 1024]
+        elif backbone == 'convnext_small' or backbone == 'convnext_tiny':
+            feature_channels = [96, 192, 384, 768]
+        elif backbone == 'resnet34' or backbone == 'resnet18':
             feature_channels = [64, 128, 256, 512]
         else:
             feature_channels = [256, 512, 1024, 2048]
-        self.backbone = ResNet(in_channels, pretrained=pretrained)
+        
+        self.backbone = getattr(backbones, options.BACKBONE)(backbone=backbone, pretrained=pretrained)
         self.PPN = PSPModule(feature_channels[-1])
-        self.FPN = FPN_fuse(feature_channels, fpn_out=fpn_out)
-        self.head = nn.Conv2d(fpn_out, num_classes, kernel_size=3, padding=1)
+        self.FPN = FPN_fuse(feature_channels, fpn_out=feature_channels[0])
+        self.head = nn.Conv2d(feature_channels[0], num_classes, kernel_size=3, padding=1)
 
     def forward(self, x):
         input_size = (x.size()[2], x.size()[3])

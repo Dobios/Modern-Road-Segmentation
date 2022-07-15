@@ -1,5 +1,6 @@
 from click import option
 import pytorch_lightning as pl
+import torch
 from torch.utils.data import random_split, DataLoader
 from math import ceil, floor
 from .datasets import BaseImageDataset, PatchedDataset, load_cil_metadata, load_massachusetts_metadata, load_airs_metadata
@@ -18,7 +19,7 @@ class DataModule(pl.LightningDataModule):
             ratio = self.options.CIL.SPLIT_TEST_VAL_RATIO
             train_size = ceil(len(cil_ds) * ratio[0])
             val_size = len(cil_ds) - train_size
-            self.train_ds, self.val_ds = random_split(cil_ds, [train_size, val_size])
+            self.train_ds, self.val_ds = random_split(cil_ds, [train_size, val_size], generator=torch.Generator().manual_seed(42))
         elif 'cil' in self.options.TRAIN_DS:
             self.train_ds = BaseImageDataset(self.options, load_cil_metadata, is_train=True)
         elif 'cil' in self.options.VAL_DS:
@@ -49,7 +50,7 @@ class DataModule(pl.LightningDataModule):
         self.load_airs_base()
 
     def train_dataloader(self):
-        return DataLoader(PatchedDataset(self.train_ds, self.options, is_train=True), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS, prefetch_factor=4)
+        return DataLoader(PatchedDataset(self.train_ds, self.options, is_train=True), batch_size=self.options.BATCHSIZE, num_workers=self.options.WORKERS, prefetch_factor=4, drop_last=True)
 
     def val_dataloader(self):
         if self.options.VAL_USE_PATCHED: 

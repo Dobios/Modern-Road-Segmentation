@@ -47,6 +47,7 @@ _C.DATASET.AUG.ROTATE_PROB = 0.75
 # Model
 _C.MODEL = CN()
 _C.MODEL.ARCH = 'UNet'
+_C.MODEL.BACKBONE = None
 
 # Loss
 _C.LOSS = CN()

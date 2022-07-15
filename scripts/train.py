@@ -56,7 +56,7 @@ def main(configs, fast_dev_run=False, predict=False):
     ckpt_callback = ModelCheckpoint(
         monitor='val_loss',
         verbose=True,
-        save_top_k=10,
+        save_top_k=1,
         mode='min',
     )
 
