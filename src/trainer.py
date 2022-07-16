@@ -52,14 +52,16 @@ class RoadSegmentationTrainer(pl.LightningModule):
         gtstack = cv2.cvtColor(gtstack.numpy(), cv2.COLOR_GRAY2RGB)
         predstack = cv2.cvtColor(predstack.numpy(), cv2.COLOR_GRAY2RGB)
         imgstack = imgstack.numpy()
+        self.logger.experiment.log({"samples": wandb.Image(imgstack, masks={"predictions": {"mask_data": predstack} , "ground_truth": {"mask_data": gtstack}})})
+
         # concat
-        gt = np.concatenate((imgstack, gtstack), axis=1)
-        pred = np.concatenate((imgstack, predstack), axis=1)
-        # wandb
-        self.logger.experiment.log({
-            "samples": [wandb.Image(cv2.cvtColor(pred, cv2.COLOR_BGR2RGB), caption="predicted"),
-                        wandb.Image(cv2.cvtColor(gt, cv2.COLOR_BGR2RGB), caption="gt")]
-        })
+        # gt = np.concatenate((imgstack, gtstack), axis=1)
+        # pred = np.concatenate((imgstack, predstack), axis=1)
+        # # wandb
+        # self.logger.experiment.log({
+        #     "samples": [wandb.Image(cv2.cvtColor(pred, cv2.COLOR_BGR2RGB), caption="predicted"),
+        #                 wandb.Image(cv2.cvtColor(gt, cv2.COLOR_BGR2RGB), caption="gt")]
+        # })
 
     def training_step(self, batch, batch_idx):
         # Get data from batch

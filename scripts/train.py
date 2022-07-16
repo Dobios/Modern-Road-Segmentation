@@ -6,6 +6,7 @@ from loguru import logger
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
 sys.path.append('.')
@@ -53,14 +54,23 @@ def main(configs, fast_dev_run=False, predict=False):
     wandb_logger.watch(model)
 
     # this callback saves best 30 checkpoint based on the validation loss
-    ckpt_callback = ModelCheckpoint(
+    ckpt_loss_callback = ModelCheckpoint(
         monitor='val_loss',
         verbose=True,
-        save_top_k=10,
+        save_top_k=3,
         mode='min',
     )
+    ckpt_acc_callback = ModelCheckpoint(
+        monitor='val/acc',
+        verbose=True,
+        save_top_k=3,
+        mode='max',
+    )
 
-    callbacks = [ckpt_callback]
+
+
+    callbacks = [ckpt_loss_callback, ckpt_acc_callback]
+    #callbacks.append(EarlyStopping(monitor="val_loss", patience=40, mode="min"))
     
     no_gpus = 1 if torch.cuda.is_available() else 0
 
@@ -83,12 +93,13 @@ def main(configs, fast_dev_run=False, predict=False):
     logger.info('*** Started training ***')
     trainer.fit(model, datamodule=datamodule)
     logger.info('*** Finished training ***')
-    logger.info(f'Best validation loss: {ckpt_callback.best_model_score}')
-    logger.info(f'Best model saved at {ckpt_callback.best_model_path}')
+    logger.info(f'Best validation loss: {ckpt_loss_callback.best_model_score}')
+    logger.info(f'Best model (val_loss) saved at {ckpt_loss_callback.best_model_path}')
+    logger.info(f'Best model (val/acc) saved at {ckpt_acc_callback.best_model_path}')
     if predict:
         logger.info('*** Started testing ***')
-        logger.info(f'Loading best model...')
-        model = RoadSegmentationTrainer.load_from_checkpoint(ckpt_callback.best_model_path, options=configs).to(device)
+        logger.info(f'Loading best model (val_loss)...')
+        model = RoadSegmentationTrainer.load_from_checkpoint(ckpt_acc_callback.best_model_path, options=configs).to(device)
         trainer.test(model, datamodule=datamodule)
         
 if __name__ == "__main__":

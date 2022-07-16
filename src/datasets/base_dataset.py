@@ -70,7 +70,7 @@ class PatchedDataset(IterableDataset, ABC):
             self.transform = A.Compose([
                 A.RandomBrightnessContrast(p=options.AUG.RANDOM_BRIGHTNESSCONTRAST_PROB),
                 A.Flip(p=options.AUG.FLIP_PROB),
-                A.Rotate(limit=options.AUG.ROTATE_LIMIT, p=options.AUG.ROTATE_PROB),
+                A.ShiftScaleRotate(rotate_limit=options.AUG.ROTATE_LIMIT, p=options.AUG.SSR_PROB),
             ])
 
     
