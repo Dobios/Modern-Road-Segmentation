@@ -4,10 +4,10 @@ import torch.nn.functional as F
 from torchvision import models
 from loguru import logger
 
-class ConvNext(nn.Module):
-    def __init__(self, backbone='convnext_base', pretrained=True):
-        super(ConvNext, self).__init__()
-        model = getattr(models, backbone)(pretrained)
+class ConvNeXt(nn.Module):
+    def __init__(self, options):
+        super(ConvNeXt, self).__init__()
+        model = getattr(models, options.VERSION)(options.WEIGHTS)
         
         self.layer1 = nn.Sequential(model.features[0], model.features[1])
         self.norm1 = model.features[2][0]

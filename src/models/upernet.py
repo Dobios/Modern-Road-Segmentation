@@ -79,20 +79,20 @@ class FPN_fuse(nn.Module):
 
 class UperNet(nn.Module):
     # Implementing only the object path
-    def __init__(self, options, num_classes=1, backbone='convnext_base', pretrained=True, **_):
+    def __init__(self, options, num_classes=1, **_):
         super(UperNet, self).__init__()
         self.options = options
-
-        if backbone == 'convnext_base':
+        backbone_version = options.BACKBONE.VERSION
+        if backbone_version == 'convnext_base':
             feature_channels = [128, 256, 512, 1024]
-        elif backbone == 'convnext_small' or backbone == 'convnext_tiny':
+        elif backbone_version == 'convnext_small' or backbone_version == 'convnext_tiny':
             feature_channels = [96, 192, 384, 768]
-        elif backbone == 'resnet34' or backbone == 'resnet18':
+        elif backbone_version == 'resnet34' or backbone_version == 'resnet18':
             feature_channels = [64, 128, 256, 512]
         else:
             feature_channels = [256, 512, 1024, 2048]
         
-        self.backbone = getattr(backbones, options.BACKBONE)(backbone=backbone, pretrained=pretrained)
+        self.backbone = getattr(backbones, options.BACKBONE.ARCH)(options.BACKBONE)
         self.PPN = PSPModule(feature_channels[-1])
         self.FPN = FPN_fuse(feature_channels, fpn_out=feature_channels[0])
         self.head = nn.Conv2d(feature_channels[0], num_classes, kernel_size=3, padding=1)

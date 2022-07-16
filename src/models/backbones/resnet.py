@@ -5,7 +5,7 @@ from torchvision import models
 from loguru import logger
 
 class ResNet(nn.Module):
-    def __init__(self, in_channels=3, output_stride=16, backbone='resnet50', pretrained=True):
+    def __init__(self, options, in_channels=3, output_stride=16, backbone='resnet50', pretrained=True):
         super(ResNet, self).__init__()
         model = getattr(models, backbone)(pretrained)
         self.initial = nn.Sequential(

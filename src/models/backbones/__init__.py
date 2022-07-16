@@ -1,2 +1,2 @@
 from .resnet import ResNet
-from .convnext import ConvNext
+from .convnext import ConvNeXt
