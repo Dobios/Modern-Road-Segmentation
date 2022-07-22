@@ -1,7 +1,7 @@
 from multiprocessing.context import assert_spawning
 from re import A
 import torch
-from torch.utils.data import IterableDataset, Dataset
+from torch.utils.data import IterableDataset, Dataset, WeightedRandomSampler
 import pandas as pd
 import numpy as np
 from ..utils import read_img, read_mask, unfold_data
@@ -31,11 +31,11 @@ class CILFeaturesDataset(BaseImageDataset):
 
 class PixelDataset(IterableDataset):
     """Base Class for image dataset. Handles data loading."""
-    def __init__(self, options, features_dataset) -> None:
+    def __init__(self, options, features_dataset, weighted) -> None:
         super().__init__()
         self.features_dataset = features_dataset
         self.shuffle = True
-
+        self.weighted = True
 
     def __iter__(self):
         worker_info = torch.utils.data.get_worker_info()
@@ -57,7 +57,16 @@ class PixelDataset(IterableDataset):
             features = item["features"].permute(1,0,2,3).reshape(dims, -1).permute(1,0)
             y = item["masks"].flatten()
             f_indices = np.arange(features.shape[0])
-            if self.shuffle:
-                f_indices = np.random.permutation(f_indices)
-            for f_index in f_indices:
-                yield {"features": features[f_index], "y": y[f_index]}
+
+            if self.weighted:
+                no1 = torch.sum(item["masks"])
+                wmap = [item["masks"].numel()-no1, no1]
+                weights = [wmap[int(v.item())] for v in y]
+                for f_index in WeightedRandomSampler(weights, len(f_indices)//2):
+                    yield {"features": features[f_index], "y": y[f_index]}
+            else:
+                if self.shuffle:
+                    f_indices = np.random.permutation(f_indices)
+                for f_index in f_indices:
+                    yield {"features": features[f_index], "y": y[f_index]}
+ 

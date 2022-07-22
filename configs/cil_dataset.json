@@ -5,14 +5,14 @@
     "number_class": 30,
     "ignore_label": 255,
   
-    "model_path": "data/ema_0.9999_026000.pt",
+    "model_path": "/cluster/scratch/jminder/RoadDiffusion/logs/ema_0.9999_026000.pt",
   
-    "dim": [256, 256, 3168],
-    "steps": [50, 150, 250],
-    "blocks": [5, 6, 7, 8, 12],
+    "dim": [256, 256, 5760],
+    "steps": [50, 150, 200, 250],
+    "blocks": [4, 5, 6, 7, 8, 12],
   
     "model_num": 10,
-    "batch_size": 64,
+    "batch_size": 128,
     "max_training": 30,
     
     "upsample_mode":"bilinear",

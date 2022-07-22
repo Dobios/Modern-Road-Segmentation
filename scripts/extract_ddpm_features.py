@@ -116,18 +116,13 @@ def collect_features(args, activations: List[torch.Tensor], sample_idx=0):
 
 def main(args):
     cfg = get_cfg_defaults()
-    cfg.DATASET.CIL.PATH = "data/cil"
+    #cfg.DATASET.CIL.PATH = "data/cil"
     feature_extractor = FeatureExtractorDDPM(**args)
     train_ds = BaseImageDataset(cfg.DATASET, load_cil_metadata, True)
-    train_ds, val_ds = random_split(raw_ds, [train_size, val_size], generator=torch.Generator().manual_seed(42))
-
     test_ds = BaseImageDataset(cfg.DATASET, load_cil_metadata, False)
     features_root = cfg.DATASET.CIL.PATH + "/features/"
     os.makedirs(features_root, exist_ok = True)
-    """Notes: 
-        Load images from CIL train and val seperatelly, manually split them into folds, 
-        and create the feature vectors and safe them as >>> torch.save(x, 'tensor.pt')
-    """
+
     if 'share_noise' in args and args['share_noise']:
         rnd_gen = torch.Generator(device=device).manual_seed(args['seed'])
         noise = torch.randn(1, 3, args['image_size'], args['image_size'], 

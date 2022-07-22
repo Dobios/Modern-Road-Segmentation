@@ -7,7 +7,7 @@ from loguru import logger
 class ConvNeXt(nn.Module):
     def __init__(self, options):
         super(ConvNeXt, self).__init__()
-        model = getattr(models, options.VERSION)(options.WEIGHTS)
+        model = getattr(models, options.VERSION)(pretrained=True) #options.WEIGHTS)
         
         self.layer1 = nn.Sequential(model.features[0], model.features[1])
         self.norm1 = model.features[2][0]

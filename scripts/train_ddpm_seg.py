@@ -36,10 +36,9 @@ def train(args, options):
     train_size = ceil(len(raw_ds) * 0.8)
     val_size = len(raw_ds) - train_size
     raw_train_ds, val_ds = random_split(raw_ds, [train_size, val_size], generator=torch.Generator().manual_seed(42))
-    train_data = PixelDataset(options, raw_train_ds)
+    train_data = PixelDataset(options, raw_train_ds, weighted=True)
     print(f"**** {len(raw_ds)} images ****")
-    train_loader = DataLoader(dataset=train_data, batch_size=args['batch_size'], num_workers=1)
-
+    train_loader = DataLoader(dataset=train_data, batch_size=args['batch_size'], num_workers=3)
     wandb.init(config=args, project="CIL-DDPMRoadSegmentation", entity="jkminder")
     for MODEL_NUMBER in range(args['start_model_num'], args['model_num'], 1):
 
@@ -47,7 +46,7 @@ def train(args, options):
         classifier.init_weights()
 
         classifier = classifier.to(device)
-        criterion = LossLogger(options.LOSS, "BCEDiceLoss")
+        criterion = nn.BCELoss() #LossLogger(options.LOSS, "BCEDiceLoss")
         optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
         classifier.train()
 
@@ -60,15 +59,23 @@ def train(args, options):
         accs = []
         window_size = 10
         for epoch in tqdm(range(epochs), total = epochs, position=0, desc="Epoch"):
-            for item in tqdm(train_loader, position=1, desc="Iteration"):
+            #for i in tqdm(train_loader, position=1, desc="Iteration"):
+            dl = iter(train_loader)
+            pb = tqdm(position=1, desc="Iteration")
+            while(True):
+                try:
+                    item = next(dl)
+                except StopIteration:
+                    break
+                pb.update()
                 X_batch, y_batch = item["features"].to(device), item["y"].to(device)
                 y_batch = y_batch.unsqueeze(1) # needs to be [bs, 1]
 
                 optimizer.zero_grad()
                 y_pred = classifier(X_batch)
                 #print(y_batch.shape, y_pred.shape)
-                loss, dict = criterion(y_pred, y_batch)
-
+                loss = criterion(y_pred, y_batch)
+                dict = {}
                 loss.backward()
                 optimizer.step()
 
