@@ -24,7 +24,8 @@ def read_mask(mask_fn, resize_to=None):
     if resize_to is not None and resize_to != (mask.shape[0], mask.shape[1]):  # resize images
         mask = cv2.resize(mask, dsize=resize_to)
     mask = mask.astype(np.float32)
-    mask /= 255.0
+    if mask.max() > 1:
+        mask /= 255
     return mask
 
 def unfold_data(img, mask, stride, size):
