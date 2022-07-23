@@ -65,6 +65,7 @@ class PatchedDataset(IterableDataset, ABC):
             self.stride = self.options.PATCH_SIZE
 
         self.shuffle = self.options.SHUFFLE if self.is_train else False
+        self.max_pixel_sum = self.size * self.size * 3 * 0.6
 
         if self.use_augmentations:
             self.transform = A.Compose([
@@ -89,7 +90,7 @@ class PatchedDataset(IterableDataset, ABC):
                 mask = torch.Tensor(transformed['mask'])
             statistics["time-augmentation"] = time.time() - start_single
             mask_percentage = mask.sum() / np.prod(mask.shape)
-            if mask_percentage < self.options.MIN_MASK_PERCENTAGE:
+            if patch.sum() > self.max_pixel_sum or mask_percentage < self.options.MIN_MASK_PERCENTAGE:
                 stat_skipped += 1
                 continue
             statistics["skipped"] = stat_skipped
