@@ -6,7 +6,7 @@ from loguru import logger
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger, WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks import StochasticWeightAveraging
 
 
 sys.path.append('.')
@@ -72,6 +72,9 @@ def main(configs, fast_dev_run=False, predict=False):
     callbacks = [ckpt_loss_callback, ckpt_acc_callback]
     #callbacks.append(EarlyStopping(monitor="val_loss", patience=40, mode="min"))
     
+    if configs.TRAINING.USE_SWA:
+        callbacks.append(StochasticWeightAveraging(swa_epoch_start=configs.TRAINING.SWA_START, swa_lrs=configs.TRAINING.SWA_LR))
+        
     no_gpus = 1 if torch.cuda.is_available() else 0
 
     if configs.TRAINING.RESUME_CKPT is not None:
