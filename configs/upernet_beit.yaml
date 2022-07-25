@@ -1,0 +1,50 @@
+EXP_NAME: "UPerNet_BEiT"
+LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
+DATASET:
+  BATCHSIZE: 32
+  TRAIN_DS: 'cil'
+  VAL_DS: 'cil'
+  TEST_DS: 'cil'
+  PATCH_SIZE: 224
+  PATCH_STRIDE: 88
+  VAL_USE_PATCHED: True
+  CIL:
+    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/cil'
+  MASSACHUSETTS:
+    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/massachusetts'
+    TRAIN_SPLITS: 'train,val'
+    VAL_SPLITS: 'test'
+  USE_AUG: True 
+  
+  AUG:
+    SSR_PROB: 0.9
+    FLIP_PROB: 0.5
+    RANDOM_BRIGHTNESSCONTRAST_PROB: 0.75
+
+OPTIMIZER:
+  LR: 0.0001
+
+TRAINING:
+  LOG_IMAGES: True
+  EPOCHS: 200
+  RESUME_CKPT: None
+
+LOSS:
+  NAME: "BCEDiceLoss"
+
+TEST:
+  SUBMISSION_PATH: "upernet_cnt_submission.csv"
+  USE_TTA: True
+  TTA_STRATEGY: "thres"
+  POSTPROCESSING:
+    USE_MEDIAN_BLUR: False
+    USE_LOW_NOISE_REMOVAL: False
+    USE_GAUS_THRES: False
+    USE_BLOB_REMOVAL: False
+  
+MODEL:
+  ARCH: "UperNet"
+  BACKBONE: 
+    ARCH: "BEiT"
+    VERSION: "beit_base"
+    WEIGHTS: "IMAGENET1K_V1"

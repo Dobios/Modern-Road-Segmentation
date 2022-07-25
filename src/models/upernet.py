@@ -83,7 +83,9 @@ class UperNet(nn.Module):
         super(UperNet, self).__init__()
         self.options = options
         backbone_version = options.BACKBONE.VERSION
-        if backbone_version == 'convnext_base':
+        if backbone_version == "beit_base":
+            feature_channels = [768, 768, 768, 768]
+        elif backbone_version == 'convnext_base':
             feature_channels = [128, 256, 512, 1024]
         elif backbone_version == 'convnext_small' or backbone_version == 'convnext_tiny':
             feature_channels = [96, 192, 384, 768]
