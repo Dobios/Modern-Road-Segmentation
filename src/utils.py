@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import torch
+import torch.nn as nn
 import re
 from .constants import PATCH_SIZE, CUTOFF
 from loguru import logger
@@ -30,12 +31,13 @@ def read_mask(mask_fn, resize_to=None):
 
 def unfold_data(img, mask, stride, size):
     """Unfolds img and mask into a list of patches."""
-
+    mask_patches, ufold_shape = None, None
     img_patches = img.unfold(0, 3, 3).unfold(1, size, stride).unfold(2, size, stride)
-    mask_patches = mask.unfold(0, size, stride).unfold(1, size, stride)
-    ufold_shape = mask_patches.shape
+    if mask is not None:
+        mask_patches = mask.unfold(0, size, stride).unfold(1, size, stride)
+        ufold_shape = mask_patches.shape
+        mask_patches = mask_patches.reshape(-1, size, size)
     img_patches = img_patches.reshape(-1, 3, size, size)
-    mask_patches = mask_patches.reshape(-1, size, size)
     return img_patches, mask_patches, ufold_shape
 
 def patchify(mask):
@@ -86,7 +88,7 @@ def show_first(item):
 
 
 
-def collect_features(args, activations: List[torch.Tensor], sample_idx=0):
+def collect_features(args, activations, sample_idx=0):
     """ Upsample activations and concatenate them to form a feature tensor 
     from https://github.com/yandex-research/ddpm-segmentation
     """

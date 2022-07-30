@@ -1,9 +1,6 @@
 {
     "exp_dir": "pixel_classifiers/cil",
     "model_type": "ddpm",
-    "category": "ade_bedroom_30",
-    "number_class": 30,
-    "ignore_label": 255,
   
     "model_path": "/cluster/scratch/jminder/RoadDiffusion/logs/ema_0.9999_044000.pt",
   
@@ -13,12 +10,18 @@
   
     "model_num": 1,
     "batch_size": 128,
-    "max_training": 30,
+
     
     "upsample_mode":"bilinear",
-    "training_number": 50,
-    "testing_number": 650,
-  
+
     "share_noise": true,
-    "input_activations": false
-   }
+    "input_activations": false,
+
+    "image_size": 256,
+    "num_channels": 96,
+    "num_res_blocks": 2,
+    "num_heads": 1,
+    "learn_sigma": true,
+    "use_scale_shift_norm": false,
+    "attention_resolutions": "16"
+}

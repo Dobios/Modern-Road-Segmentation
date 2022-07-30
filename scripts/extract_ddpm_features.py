@@ -46,7 +46,7 @@ def main(args):
         for i in range(patches.shape[0]):
             img = patches[i][None].to(device)
             raw_features = feature_extractor(img, noise=noise)
-            X[i] = collect_features(args, raw_features).cpu() #[3168, 256, 256]
+            X[i] = collect_features(args, raw_features).cpu() #[feats, 256, 256]
         
         fname = features_root + "/" + item["image_path"].split("/")[-1].split(".")[0]
         torch.save(X, fname+"_feats.pt")

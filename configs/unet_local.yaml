@@ -11,11 +11,6 @@ DATASET:
     PATH: 'data/cil'     
   USE_AUG: True
   
-  AUG:
-    ROTATE_PROB: 0.75
-    FLIP_PROB: 0.5
-    RANDOM_BRIGHTNESSCONTRAST_PROB: 0.75
-
 OPTIMIZER:
   LR: 0.0001
 
