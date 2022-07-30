@@ -34,6 +34,10 @@ class PixelDataset(IterableDataset):
     def __init__(self, options, features_dataset, weighted) -> None:
         super().__init__()
         self.features_dataset = features_dataset
+        if len(self.features_dataset) <= 5:
+            self.memory = True
+        else:
+            self.memory = False
         self.shuffle = True
         self.weighted = True
 
@@ -51,8 +55,16 @@ class PixelDataset(IterableDataset):
         indices = np.arange(iter_start, iter_end)
         if self.shuffle:
             indices = np.random.permutation(indices)
+        if self.memory:
+            self.db = {}
+            # Load imgs into memory
+            for index in indices:
+                self.db[index] = self.features_dataset[index]
         for index in indices:
-            item = self.features_dataset[index] #[4, 3168, 256, 256]
+            if self.memory:
+                item = self.db[index]
+            else:
+                item = self.features_dataset[index]
             dims = item["features"].shape[1]
             features = item["features"].permute(1,0,2,3).reshape(dims, -1).permute(1,0)
             y = item["masks"].flatten()

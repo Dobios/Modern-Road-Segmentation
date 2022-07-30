@@ -65,7 +65,7 @@ class PatchedDataset(IterableDataset, ABC):
             self.stride = self.options.PATCH_SIZE
 
         self.shuffle = self.options.SHUFFLE if self.is_train else False
-        self.max_pixel_sum = self.size * self.size * 3 * 0.6
+        self.max_pixel_sum = self.size * self.size * 3 * 0.6 * 255
 
         if self.use_augmentations:
             self.transform = A.Compose([

@@ -83,3 +83,21 @@ def show_first(item):
     plt.subplot(1, 2, 2)
     plt.imshow(item["mask"][0])
     plt.show()
+
+
+
+def collect_features(args, activations: List[torch.Tensor], sample_idx=0):
+    """ Upsample activations and concatenate them to form a feature tensor 
+    from https://github.com/yandex-research/ddpm-segmentation
+    """
+    assert all([isinstance(acts, torch.Tensor) for acts in activations])
+    size = tuple(args['dim'][:-1])
+    resized_activations = []
+    for feats in activations:
+        feats = feats[sample_idx][None]
+        feats = nn.functional.interpolate(
+            feats, size=size, mode=args["upsample_mode"]
+        )
+        resized_activations.append(feats[0])
+    
+    return torch.cat(resized_activations, dim=0)

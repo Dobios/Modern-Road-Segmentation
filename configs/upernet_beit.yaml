@@ -26,14 +26,14 @@ OPTIMIZER:
 
 TRAINING:
   LOG_IMAGES: True
-  EPOCHS: 200
+  EPOCHS: 400
   RESUME_CKPT: None
 
 LOSS:
   NAME: "BCEDiceLoss"
 
 TEST:
-  SUBMISSION_PATH: "upernet_cnt_submission.csv"
+  SUBMISSION_PATH: "upernet_beit_submission.csv"
   USE_TTA: True
   TTA_STRATEGY: "thres"
   POSTPROCESSING:
@@ -43,7 +43,7 @@ TEST:
     USE_BLOB_REMOVAL: False
   
 MODEL:
-  ARCH: "UperNet"
+  ARCH: "BEiT"
   BACKBONE: 
     ARCH: "BEiT"
     VERSION: "beit_base"

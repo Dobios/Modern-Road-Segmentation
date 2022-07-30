@@ -98,6 +98,9 @@ class RoadSegmentationTrainer(pl.LightningModule):
         for key, value in metrics.items():
             self.log(key, value, on_epoch=True)
 
+        if self.hparams.VALIDATION.LOG_IMAGES and batch_idx % 10 == 0:
+            self.log_images(x, y, y_hat)
+
         self.log("statistics/mean-item-load-time", batch["statistics"]["time-total"].mean())
         return loss
 

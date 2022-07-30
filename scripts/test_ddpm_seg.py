@@ -7,11 +7,13 @@ sys.path.append('.')
 import torch
 from torch import nn
 from typing import List
-from src.config import get_cfg_defaults
-from src.datasets import BaseImageDataset, load_cil_metadata
-from src.utils import unfold_data, patchify
-import pandas as pd
 from torch.utils.data import random_split, DataLoader
+from collections import defaultdict
+import cv2
+import numpy as np
+import random
+import torch.utils.data as data_utils
+import pandas as pd
 from tqdm import tqdm
 import os
 import argparse
@@ -20,47 +22,27 @@ import json
 import wandb
 from tqdm import tqdm
 from math import ceil 
-from src.datasets import CILFeaturesDataset, PixelDataset
-from src.models import PixelClassifier
+from src.utils import unfold_data, patchify
+from src.config import get_cfg_defaults
+from src.datasets import CILFeaturesDataset, PixelDataset, BaseImageDataset, load_cil_metadata
+from src.models import PixelClassifier, FeatureExtractorDDPM
+from src.utils import collect_features
 from src.losses import LossLogger
 from src.metrics import accuracy, f1_score, jaccard
-from collections import defaultdict
-import cv2
-import numpy as np
-import random
-import torch.utils.data as data_utils
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 
-def train(args, options):
-    raw_ds = CILFeaturesDataset(options.DATASET, True)
-    train_size = ceil(len(raw_ds) * 0.8)
-    val_size = len(raw_ds) - train_size
-    raw_train_ds, val_ds = random_split(raw_ds, [train_size, val_size], generator=torch.Generator().manual_seed(42))
-    if args["n_img"] is not None:
-        print(f"Using only {args['n_img']} training images...")
-        indices = torch.arange(args["n_img"])
-        raw_train_ds = data_utils.Subset(raw_train_ds, indices)
-    train_data = PixelDataset(options, raw_train_ds, weighted=True)
-    print(f"**** {len(raw_ds)} images ****")
-    train_loader = DataLoader(dataset=train_data, batch_size=args['batch_size'], num_workers=4)
-    wandb.init(config=args, project="CIL-RoadSegmentation", entity="jkminder", group="ddpm",name =f"R{args['n_img']}" if args["n_img"] is not None else "Full")
+def test(args, options):
+    test_ds = BaseImageDataset(self.options, load_cil_metadata, is_train=False)
     classifier = PixelClassifier(args['dim'][-1])
-    if args["model"] is not None:
-        print(f"Loading model from", args["model"])
-        classifier.load_state_dict(torch.load(args["model"])["model_state_dict"])
-    else:
-        classifier.init_weights()
-
+    print(f"Loading pixel classifier from", args["model"] )
+    classifier.load_state_dict(torch.load(args["model"]))
     classifier = classifier.to(device)
-    total_params = sum(p.numel() for p in classifier.parameters() if p.requires_grad)
-    print(f"Trainable parameters: {total_params}")
+    classifier.eval()
 
-    criterion = LossLogger(options.LOSS, "BCEDiceLoss")
-    optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
-    classifier.train()
+    feature_extractor = FeatureExtractorDDPM(**args)
 
     iteration = 0
     break_count = 0

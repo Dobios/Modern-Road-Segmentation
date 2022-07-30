@@ -37,8 +37,9 @@ def main(configs, fast_dev_run=False, predict=False):
     wandb_logger = WandbLogger(
         name=configs.EXP_NAME, 
         project="CIL-RoadSegmentation", 
-        entity="jkminder"
+        entity="jkminder",
         #log_model=True # logs model checkpoints to wandb
+        group=configs.GROUP
     )
 
     # This is where we initialize the model specific training routines
@@ -57,23 +58,30 @@ def main(configs, fast_dev_run=False, predict=False):
     ckpt_loss_callback = ModelCheckpoint(
         monitor='val_loss',
         verbose=True,
-        save_top_k=3,
+        save_top_k=2,
         mode='min',
     )
     ckpt_acc_callback = ModelCheckpoint(
         monitor='val/acc',
         verbose=True,
-        save_top_k=3,
+        save_top_k=2,
         mode='max',
     )
+    ckpt_f1_callback = ModelCheckpoint(
+        monitor='val/f1',
+        verbose=True,
+        save_top_k=2,
+        mode='max',
+    )
+    ckpt_latest_callback = ModelCheckpoint(
+        save_top_k=1
+    )
 
-
-
-    callbacks = [ckpt_loss_callback, ckpt_acc_callback]
+    callbacks = [ckpt_loss_callback, ckpt_acc_callback, ckpt_latest_callback, ckpt_f1_callback]
     #callbacks.append(EarlyStopping(monitor="val_loss", patience=40, mode="min"))
     
     if configs.TRAINING.USE_SWA:
-        callbacks.append(StochasticWeightAveraging(swa_epoch_start=configs.TRAINING.SWA_START, swa_lrs=configs.TRAINING.SWA_LR))
+        callbacks.append(StochasticWeightAveraging(swa_epoch_start=configs.TRAINING.SWA_START, swa_lrs=configs.TRAINING.SWA_LR, annealing_epochs=configs.TRAINING.SWA_ANNEALING_EPOCHS))
         
     no_gpus = 1 if torch.cuda.is_available() else 0
 
@@ -99,10 +107,13 @@ def main(configs, fast_dev_run=False, predict=False):
     logger.info(f'Best validation loss: {ckpt_loss_callback.best_model_score}')
     logger.info(f'Best model (val_loss) saved at {ckpt_loss_callback.best_model_path}')
     logger.info(f'Best model (val/acc) saved at {ckpt_acc_callback.best_model_path}')
+    logger.info(f'Best model (val/f1) saved at {ckpt_f1_callback.best_model_path}')
     if predict:
         logger.info('*** Started testing ***')
-        logger.info(f'Loading best model (val_loss)...')
-        model = RoadSegmentationTrainer.load_from_checkpoint(ckpt_acc_callback.best_model_path, options=configs).to(device)
+        #trainer.test(model, datamodule=datamodule)
+        logger.info(f'Loading best model (f1)...')
+        model = RoadSegmentationTrainer.load_from_checkpoint(ckpt_f1_callback.best_model_path, options=configs).to(device)
+        #model.hparams.TEST.SUBMISSION_PATH = model.hparams.TEST.SUBMISSION_PATH.split(".")[0] + "_bestacc.csv"
         trainer.test(model, datamodule=datamodule)
         
 if __name__ == "__main__":

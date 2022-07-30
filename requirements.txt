@@ -9,3 +9,5 @@ yacs
 pytorch_lightning
 loguru
 pandas
+mmcv
+transformers
