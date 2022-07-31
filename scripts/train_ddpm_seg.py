@@ -183,8 +183,9 @@ if __name__ == '__main__':
     
 
     # Load the experiment config
-    opts = json.load(open(args.exp, 'r'))
-    opts.update(vars(args))
+        # Load the experiment config
+    opts = vars(args)
+    opts.update(json.load(open(args.exp, 'r')))
     opts['image_size'] = opts['dim'][0]
 
     # Parse configs

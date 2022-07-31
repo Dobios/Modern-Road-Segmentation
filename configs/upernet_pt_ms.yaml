@@ -1,0 +1,40 @@
+EXP_NAME: "UPerNet_MSRoads"
+LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
+DATASET:
+  BATCHSIZE: 64
+  TRAIN_DS: 'massachusetts'
+  VAL_DS: 'massachusetts'
+  TEST_DS: 'cil'
+  PATCH_SIZE: 224
+  PATCH_STRIDE: 112
+  VAL_USE_PATCHED: True
+  CIL:
+    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/cil'
+  MASSACHUSETTS:
+    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/massachusetts-roads'
+    TRAIN_SPLITS: 'train,val'
+    VAL_SPLITS: 'test'
+  USE_AUG: True
+
+  AUG:
+    SSR_PROB: 0.9
+    FLIP_PROB: 0.5
+    RANDOM_BRIGHTNESSCONTRAST_PROB: 0.75
+    ROTATE_LIMIT: 170
+
+OPTIMIZER:
+  LR: 0.0001
+
+TRAINING:
+  LOG_IMAGES: False
+  EPOCHS: 100
+  RESUME_CKPT: None
+
+LOSS:
+  NAME: "BCEDiceLoss"
+
+MODEL:
+  ARCH: "UperNet"
+  BACKBONE:
+    ARCH: "ConvNeXt"
+    VERSION: "convnext_base"

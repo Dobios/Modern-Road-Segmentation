@@ -1,49 +1,50 @@
-EXP_NAME: "UPerNet_CNb"
-LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/'
+EXP_NAME: "UPerNet_base"
+LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/' #UPDATE PATH
 DATASET:
   BATCHSIZE: 32
-  TRAIN_DS: 'massachusetts'
-  VAL_DS: 'massachusetts'
+  TRAIN_DS: 'cil'
+  VAL_DS: 'cil'
   TEST_DS: 'cil'
   PATCH_SIZE: 208
   PATCH_STRIDE: 96
   CIL:
-    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/cil'
-  MASSACHUSETTS:
-    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/massachusetts'
-    TRAIN_SPLITS: 'train,val'
-    VAL_SPLITS: 'test'
-  USE_AUG: True 
-  
+    PATH: '/cluster/scratch/jminder/RoadSegmentation/data/cil' #UPDATE PATH
+  USE_AUG: True
+  MIN_MASK_PERCENTAGE: 0.01
+
   AUG:
     SSR_PROB: 0.9
     FLIP_PROB: 0.5
     RANDOM_BRIGHTNESSCONTRAST_PROB: 0.75
+    ROTATE_LIMIT: 170
 
 OPTIMIZER:
-  LR: 0.0001
+  LR: 0.0005
 
 TRAINING:
   LOG_IMAGES: True
-  EPOCHS: 200
+  EPOCHS: 600
+  PRETRAINED_MODEL: None # PATH TO PRETRAINED MS ROADS MODEL
   RESUME_CKPT: None
-
+  USE_SWA: False
+  SWA_START: 450
+  SWA_LR: 1e-4
 LOSS:
   NAME: "BCEDiceLoss"
 
 TEST:
-  SUBMISSION_PATH: "upernet_cnt_submission.csv"
-  USE_TTA: True
+  SUBMISSION_PATH: "upernet_best_submission.csv"
+  USE_TTA: False
   TTA_STRATEGY: "thres"
   POSTPROCESSING:
     USE_MEDIAN_BLUR: False
     USE_LOW_NOISE_REMOVAL: False
     USE_GAUS_THRES: False
     USE_BLOB_REMOVAL: False
-  
+
 MODEL:
   ARCH: "UperNet"
-  BACKBONE: 
+  BACKBONE:
     ARCH: "ConvNeXt"
     VERSION: "convnext_base"
     WEIGHTS: "IMAGENET1K_V1"

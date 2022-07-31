@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATA_DIR="/cluster/scratch/jminder/RoadSegmentation/data"
+DATA_DIR=$1
 #DATA_DIR="data" # Only for local runs
 
 
@@ -16,19 +16,6 @@ if [ ! -d $MASSACHUSSETS_PATH ]; then
   if [ "$?" -ne 0 ]; then
     echo "Failed to download Massachussets Road Dataset"
     rm -rf $MASSACHUSSETS_PATH
-    exit 1;
-  fi
-fi
-
-
-# Download Massachussets Road Dataset
-DEEPGLOBE_PATH="$DATA_DIR/deepglobe/"
-if [ ! -d $DEEPGLOBE_PATH ]; then
-  mkdir $DEEPGLOBE_PATH
-  kaggle datasets download balraj98/deepglobe-road-extraction-dataset -p $DEEPGLOBE_PATH --unzip
-  if [ "$?" -ne 0 ]; then
-    echo "Failed to download DeepGlobe Road Dataset"
-    rm -rf $DEEPGLOBE_PATH
     exit 1;
   fi
 fi

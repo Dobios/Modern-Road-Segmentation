@@ -1,4 +1,4 @@
-EXP_NAME: "UNet"
+EXP_NAME: "UPerNet_resnet"
 LOGDIR: '/cluster/scratch/jminder/RoadSegmentation/' #UPDATE PATH
 DATASET:
   BATCHSIZE: 32
