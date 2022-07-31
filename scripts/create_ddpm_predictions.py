@@ -1,12 +1,10 @@
 """
 Adopted from https://yandex-research.github.io/ddpm-segmentation/
 """
-import torch
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
 from importlib.resources import path
 import sys
 sys.path.append('.')
+import torch
 from torch import nn
 from typing import List
 from torch.utils.data import random_split, DataLoader
@@ -14,7 +12,6 @@ from collections import defaultdict
 import cv2
 import numpy as np
 import random
-from loguru import logger
 import torch.utils.data as data_utils
 import pandas as pd
 from tqdm import tqdm
@@ -22,6 +19,8 @@ import os
 import argparse
 from guided_diffusion.script_util import model_and_diffusion_defaults, add_dict_to_argparser
 import json
+import wandb
+from tqdm import tqdm
 from math import ceil 
 from src.utils import unfold_data, patchify, create_submission
 from src.config import get_cfg_defaults
@@ -29,7 +28,10 @@ from src.datasets import BaseImageDataset, load_cil_metadata
 from src.models import PixelClassifier, FeatureExtractorDDPM
 from src.utils import collect_features
 from src.metrics import accuracy, f1_score, jaccard
+from src.datamodule import DataModule
+from torchvision.utils import save_image
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def extract_features(feature_extractor, noise, x, args):
     patches, _, _ = unfold_data(x, None, 144, 256)
@@ -53,10 +55,13 @@ def predict(classifier, feature_extractor, noise, x, args):
     y_hat = classifier(features).detach().cpu().reshape(1,400,400) 
     return y_hat
 
-def test(args, options):
-    test_ds = BaseImageDataset(options.DATASET, load_cil_metadata, is_train=False)
+def main(args, options, n=10): 
+    datamodule = DataModule(options.DATASET)
+    datamodule.setup()
+    ds = iter(datamodule.val_ds)
+
     classifier = PixelClassifier(args['dim'][-1])
-    logger.info(f"Loading pixel classifier from", args["model"] )
+    print(f"Loading pixel classifier from", args["model"] )
     classifier.load_state_dict(torch.load(args["model"])["model_state_dict"])
     #classifier.init_weights()
     classifier = classifier.to(device)
@@ -72,31 +77,15 @@ def test(args, options):
     
     predictions = []
     names = []
-    for i, item in enumerate(test_ds):
-        # We always use TTA with thres here
-        x = item["image"]
-        logger.info(f"{i}: {item['image_path']}")
-        y_hat = torch.zeros((1,400,400)).cpu()
-        for x_hat, flip in [(x, False), (x.flip(2), True)]:
-            for k in range(0, 4):
-                x_rot = x_hat.rot90(k, (1,2))
-                with torch.no_grad():
-                    y_hat_rot = predict(classifier, feature_extractor, noise,  x_rot, args)
-                    y_hat_rot = y_hat_rot.detach().to('cpu').rot90(-k, (1,2))
-                if flip:
-                    y_hat_rot = y_hat_rot.flip(2)
-                y_hat += y_hat_rot
-        y_hat = (y_hat > 4).float()
-        predictions.append(patchify(y_hat))
-        logger.info(predictions[-1].shape)
-        names.append(item["image_path"])
 
-    y_hat_all = torch.cat(predictions, dim=0)
-    logger.info(y_hat_all.shape)
-    create_submission(y_hat_all, names, "ddmp_submission.csv")
+    for i in range(n):
+        item = next(ds)
+        print(item["image_path"])
+        y = predict(classifier, feature_extractor, noise,  item["image"], args)
+        save_image(y, f'predictions/{item["image_path"].split("/")[-1].split(".")[0]}_ddpm_mask.png')
+
 
 if __name__ == '__main__':
-    logger.info("Starting")
     parser = argparse.ArgumentParser()
     add_dict_to_argparser(parser, model_and_diffusion_defaults())
     parser.add_argument('--exp', type=str)
@@ -111,11 +100,11 @@ if __name__ == '__main__':
     opts = vars(args)
     opts.update(json.load(open(args.exp, 'r')))
     opts['image_size'] = opts['dim'][0]
-    logger.info(str(opts))
+    print(opts)
     # Parse configs
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args.cfg)
     cfg.freeze()
     
-    test(opts, cfg)
+    main(opts, cfg)
     

@@ -13,7 +13,8 @@ from src.trainer import RoadSegmentationTrainer
 from src.datamodule import DataModule
 from src.config import get_cfg_defaults
 
-def main(configs, model_path, n):
+def main(configs, model_path, n, name):
+    print(f"Running preds for {name}")
     if not os.path.exists("predictions"):
         os.mkdir("predictions")
     log_dir = configs.LOGDIR
@@ -33,6 +34,7 @@ def main(configs, model_path, n):
     # check HPSTrainer to see training, validation, testing loops
     model = RoadSegmentationTrainer.load_from_checkpoint(model_path, options=configs).to(device)
     logger.info(f'Loading pretrained model from {model_path}')
+    model.eval()
     
 
     datamodule = DataModule(configs.DATASET)
@@ -44,7 +46,7 @@ def main(configs, model_path, n):
         print(item["image_path"])
         item["image"] = item["image"].unsqueeze(0).to(device)
         y = torch.Tensor(model.test_step(item, 0, 0)["mask"])
-        save_image(y, f'predictions/{item["image_path"].split("/")[-1].split(".")[0]}_{configs.MODEL.ARCH}_mask.png')
+        save_image(y, f'predictions/{item["image_path"].split("/")[-1].split(".")[0]}_{name}_mask.png')
 
 
 if __name__ == "__main__":
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', '-m', type=str, help='path to the model')
 
     parser.add_argument('-n', help='Number of images from the validation set.', default=10)
-    
+    parser.add_argument("--name", help="name of the model")
     args = parser.parse_args()
 
     # parse configs
@@ -64,4 +66,4 @@ if __name__ == "__main__":
     cfg.TEST.USE_TTA = False # No TTA
     cfg.freeze()
     
-    main(cfg, args.model, args.n)
+    main(cfg, args.model, args.n, args.name)
